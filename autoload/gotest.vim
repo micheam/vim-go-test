@@ -5,6 +5,26 @@
 
 let s:Vital = vital#gotest#new()
 let s:String = s:Vital.import("Data.String")
+let s:Promise = s:Vital.import('Async.Promise')
+
+"function! s:read(chan, part) abort
+"    let out = []
+"    while ch_status(a:chan, {'part' : a:part}) =~# 'open\|buffered'
+"        call add(out, ch_read(a:chan, {'part' : a:part}))
+"    endwhile
+"    return join(out, "\n")
+"endfunction
+"
+"function! gotest#sh(...) abort
+"    let cmd = join(a:000, ' ')
+"    return s:Promise.new({resolve, reject -> job_start(cmd, {
+"                \   'drop' : 'never',
+"                \   'close_cb' : {ch -> 'do nothing'},
+"                \   'exit_cb' : {ch, code ->
+"                \     code ? reject(s:read(ch, 'err')) : resolve(s:read(ch, 'out'))
+"                \   },
+"                \ })})
+"endfunction
 
 const s:go_test_success = 0
 const s:go_test_fail = 1
