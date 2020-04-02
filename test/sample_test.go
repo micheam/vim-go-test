@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestPlus(t *testing.T) {
+func Test_Plus(t *testing.T) {
 	type args struct {
 		a int
 		b int

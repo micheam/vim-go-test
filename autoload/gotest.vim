@@ -3,9 +3,41 @@
 " Author: micheam <https://github.com/micheam>
 " License: MIT
 
+let s:Vital = vital#gotest#new()
+let s:String = s:Vital.import("Data.String")
+
 const s:go_test_success = 0
 const s:go_test_fail = 1
 const s:go_test_build_fail = 2
+
+func! gotest#_get_func_pattern()
+    if exists('g:go_test_func_pattern')
+        return g:go_test_func_pattern
+    endif
+    return "^func\\s\\zsTest\\w\\+\\ze"
+endfunc
+
+func! gotest#_get_qfm()
+    if exists('g:go_test_qfm')
+        return g:go_test_qfm
+    endif
+    return v:null
+endfunc
+
+func! gotest#_need_auto_open()
+    if exists('g:go_test_open_qf_on_failure')
+        return g:go_test_open_qf_on_failure
+    endif
+    return v:false
+endfunc
+
+fun! gotest#_qflist_map(lines = [], qfm = v:null) abort 
+    let m = {'title': s:qfconf.title, 'lines': a:lines}
+    if a:qfm != v:null
+        let m['qfm'] = a:qfm
+    endif
+    return m
+endfunc 
 
 const s:qfconf = {
             \ 'title': 'GO TEST RESULT', 
@@ -33,11 +65,28 @@ fun! gotest#detect_package() abort
     return out[0]
 endfun
 
-"fun! gotest#detect_func() abort
-"    if &ft != 'go'
-"        throw "support only ft='go'"
-"    endif
-"endfun
+fun! gotest#detect_func() abort
+    if &ft != 'go'
+        throw "support only ft='go'"
+    endif
+
+    let lnum = line(".")
+    let found = ""
+
+    while lnum > 0
+        let scanned = s:String.scan(getline(lnum), gotest#_get_func_pattern())
+        if len(scanned) > 0
+            let found = scanned[0]
+            break
+        endif
+        let lnum = lnum - 1 
+    endwhile
+
+    if found == ""
+        throw "test func not-found"
+    endif
+    return found
+endfun
 
 fun! gotest#exec_test(target_func = v:null) abort
     let pkg = gotest#detect_package()
@@ -55,13 +104,23 @@ fun! gotest#exec_test(target_func = v:null) abort
         return
     elseif test_result == s:go_test_fail
         echom "FAIL: ".pkg
-        call setqflist([], ' ', {'title': s:qfconf.title, 'lines': out})
+        let what = gotest#_qflist_map(out, gotest#_get_qfm())
+        call setqflist([], ' ', what)
+        if gotest#_need_auto_open()
+            :copen
+        endif
         return
     else 
-        call setqflist([], 'r', {'title': s:qfconf.title, 'lines': ["TEST OK"]})
         echom "OK: ".pkg
+        let what = gotest#_qflist_map(["TEST OK"], s:qfm)
+        call setqflist([], ' ', what)
         return
     endif
+endfun
+
+fun! gotest#exec_test_func() abort
+    let fun_name = gotest#detect_func()
+    call gotest#exec_test(fun_name)
 endfun
 
 " vim:set et:

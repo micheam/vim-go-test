@@ -11,8 +11,11 @@ let g:loaded_go_test = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-command! -nargs=? RunTest call gotest#exec_test(<f-args>)
-command! EchoPackage :echom gotest#detect_package()
+command! -nargs=? RunTest     call gotest#exec_test(<f-args>)
+command! -nargs=? RunTestFunc call gotest#exec_test_func()
+
+command! EchoPackage  :echom gotest#detect_package()
+command! EchoTestFunc :echom gotest#detect_func()
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
