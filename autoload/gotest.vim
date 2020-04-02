@@ -112,7 +112,7 @@ fun! gotest#exec_test(target_func = v:null) abort
         return
     else 
         echom "OK: ".pkg
-        let what = gotest#_qflist_map(["TEST OK"], s:qfm)
+        let what = gotest#_qflist_map(["TEST OK"])
         call setqflist([], ' ', what)
         return
     endif
