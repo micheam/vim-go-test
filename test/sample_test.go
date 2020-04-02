@@ -38,3 +38,10 @@ func TestPlus(t *testing.T) {
 		})
 	}
 }
+
+func TestPlus2(t *testing.T) {
+	got := Plus(1, 1)
+	if got != 2 {
+		t.Error("Oh...")
+	}
+}
