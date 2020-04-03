@@ -5,26 +5,6 @@
 
 let s:Vital = vital#gotest#new()
 let s:String = s:Vital.import("Data.String")
-let s:Promise = s:Vital.import('Async.Promise')
-
-"function! s:read(chan, part) abort
-"    let out = []
-"    while ch_status(a:chan, {'part' : a:part}) =~# 'open\|buffered'
-"        call add(out, ch_read(a:chan, {'part' : a:part}))
-"    endwhile
-"    return join(out, "\n")
-"endfunction
-"
-"function! gotest#sh(...) abort
-"    let cmd = join(a:000, ' ')
-"    return s:Promise.new({resolve, reject -> job_start(cmd, {
-"                \   'drop' : 'never',
-"                \   'close_cb' : {ch -> 'do nothing'},
-"                \   'exit_cb' : {ch, code ->
-"                \     code ? reject(s:read(ch, 'err')) : resolve(s:read(ch, 'out'))
-"                \   },
-"                \ })})
-"endfunction
 
 const s:go_test_success = 0
 const s:go_test_fail = 1
@@ -108,34 +88,45 @@ fun! gotest#detect_func() abort
     return found
 endfun
 
+fun! gotest#result_buf_execute(cmd) abort
+    let winids = gotest#open_test_result_buf()->win_findbuf()
+    if winids->len() == 0 
+        echoerr "result_buf はウィンドウに表示されていません"
+        return
+    endif
+    call map(winids, {_, wid -> win_execute(wid, a:cmd)})
+    return
+endfun
+
+fun! gotest#open_test_result_buf() abort
+    let bufnr = bufadd('Go_Test_Result')
+    call bufload(bufnr)
+    return bufnr
+endfun
+
+fun! gotest#write_result_buf(msg, ...) abort
+    let msg = a:msg->type() == v:t_list ? join(a:msg) : a:msg
+    let msg = a:0 >= 1 ? msg.' '.join(a:000) : msg
+    let bufrn = gotest#open_test_result_buf()
+    call appendbufline(bufrn, '$', '## '.msg)    
+    call gotest#result_buf_execute('normal G')
+endfun
+
 fun! gotest#exec_test(target_func = v:null) abort
     let pkg = gotest#detect_package()
-    let cmd = "go test ".pkg
+    let cmd = ["go", "test", pkg, "-count=1"]
     if a:target_func != v:null
-        let cmd = cmd." -run=".a:target_func
+        let cmd = cmd->add("-run=".a:target_func)
     endif
     if s:go_test_verbose == v:true
-        let cmd = cmd." -v"
+        let cmd = cmd->add("-v")
     endif
-    let out = systemlist(cmd)
-    let test_result = v:shell_error
-    if test_result == s:go_test_build_fail
-        echom "BUILD FAIL: ".pkg
-        return
-    elseif test_result == s:go_test_fail
-        echom "FAIL: ".pkg
-        let what = gotest#_qflist_map(out, gotest#_get_qfm())
-        call setqflist([], ' ', what)
-        if gotest#_need_auto_open()
-            :copen
-        endif
-        return
-    else 
-        echom "OK: ".pkg
-        let what = gotest#_qflist_map(["TEST OK"])
-        call setqflist([], ' ', what)
-        return
-    endif
+
+    call gotest#write_result_buf(cmd)
+    let job = job_start(cmd, {
+                \ 'out_io': 'buffer',
+                \ 'out_buf': gotest#open_test_result_buf(),
+                \ })
 endfun
 
 fun! gotest#exec_test_func() abort
