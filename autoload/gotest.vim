@@ -89,7 +89,6 @@ endfun
 fun! gotest#result_buf_execute(cmd) abort
     let winids = gotest#open_test_result_buf()->win_findbuf()
     if winids->len() == 0 
-        echoerr "result_buf はウィンドウに表示されていません"
         return
     endif
     call map(winids, {_, wid -> win_execute(wid, a:cmd)})
