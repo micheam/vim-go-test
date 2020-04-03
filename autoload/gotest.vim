@@ -52,14 +52,6 @@ const s:qfconf = {
             \ }
 lockvar s:qfconf
 
-let s:go_test_verbose = v:false
-fun! gotest#set_vervose(v = v:false) abort 
-    let s:go_test_verbose = a:v
-endfu
-fun! gotest#toggle_vervose() abort 
-    let s:go_test_verbose = !s:go_test_verbose
-endfu
-
 fun! gotest#detect_package() abort
     if &ft != 'go'
         throw "support only ft='go'"

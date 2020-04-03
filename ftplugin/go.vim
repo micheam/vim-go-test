@@ -11,19 +11,23 @@ let g:loaded_go_test = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-command! -nargs=? RunTest      call gotest#exec_test(<f-args>)
-command!          RunTestFunc  call gotest#exec_test_func()
-command!          EchoPackage  :echom gotest#detect_package()
-command!          EchoTestFunc :echom gotest#detect_func()
+command! -nargs=? RunTest         call gotest#exec_test(<f-args>)
+command!          RunTestFunc     call gotest#exec_test_func()
+command!          EchoPackage     :echom gotest#detect_package()
+command!          EchoTestFunc    :echom gotest#detect_func()
+command!          ClearTestResult call gotest#clear_result_buf()
 
 nnoremap <silent> <Plug>(go_test_run_test)       :<C-u>RunTest<CR>
 nnoremap <silent> <Plug>(go_test_run_test_func)  :<C-u>RunTestFunc<CR>
+nnoremap <silent> <Plug>(go_test_clear_result)  :<C-u>ClearTestResult<CR>
 
 if exists('g:go_test_enable_default_key_mappings') 
             \ && g:go_test_enable_default_key_mappings
 
-    silent! nmap <buffer> <Leader>tt <Plug>(go_test_run_test)
-    silent! nmap <buffer> <Leader>tf <Plug>(go_test_run_test_func)
+    silent! nmap <buffer> <Leader>tt <Plug>(go_test_run_test_func)
+    silent! nmap <buffer> <Leader>tp <Plug>(go_test_run_test)
+    silent! nmap <buffer> <Leader>tc <Plug>(go_test_clear_result)
+
 endif
 
 let &cpo = s:save_cpo
