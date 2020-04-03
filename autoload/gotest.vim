@@ -3,9 +3,6 @@
 " Author: micheam <https://github.com/micheam>
 " License: MIT
 
-let s:Vital = vital#gotest#new()
-let s:String = s:Vital.import("Data.String")
-
 const s:go_test_success = 0
 const s:go_test_fail = 1
 const s:go_test_build_fail = 2
@@ -72,11 +69,13 @@ fun! gotest#detect_func() abort
 
     let lnum = line(".")
     let found = ""
+    let pat = gotest#_get_func_pattern()
 
     while lnum > 0
-        let scanned = s:String.scan(getline(lnum), gotest#_get_func_pattern())
-        if len(scanned) > 0
-            let found = scanned[0]
+        let matched = []
+        call substitute(getline(lnum), pat, '\=add(matched, submatch(0))', '')
+        if len(matched) > 0
+            let found = matched[0]
             break
         endif
         let lnum = lnum - 1 
