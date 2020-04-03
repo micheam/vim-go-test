@@ -31,6 +31,14 @@ func! gotest#_need_auto_open()
     return v:false
 endfunc
 
+fun! gotest#vervose() abort 
+    if exists('g:go_test_vervose')
+        return g:go_test_vervose
+    endif
+    return v:false
+endfu
+
+
 fun! gotest#_qflist_map(lines = [], qfm = v:null) abort 
     let m = {'title': s:qfconf.title, 'lines': a:lines}
     if a:qfm != v:null
@@ -104,28 +112,37 @@ fun! gotest#open_test_result_buf() abort
     return bufnr
 endfun
 
+fun! gotest#clear_result_buf() abort
+    call gotest#result_buf_execute('1,$d')
+endfun
+
 fun! gotest#write_result_buf(msg, ...) abort
     let msg = a:msg->type() == v:t_list ? join(a:msg) : a:msg
     let msg = a:0 >= 1 ? msg.' '.join(a:000) : msg
     let bufrn = gotest#open_test_result_buf()
-    call appendbufline(bufrn, '$', '## '.msg)    
+    call appendbufline(bufrn, '$', msg)    
     call gotest#result_buf_execute('normal G')
 endfun
 
 fun! gotest#exec_test(target_func = v:null) abort
     let pkg = gotest#detect_package()
     let cmd = ["go", "test", pkg, "-count=1"]
+
     if a:target_func != v:null
         let cmd = cmd->add("-run=".a:target_func)
     endif
-    if s:go_test_verbose == v:true
+    if gotest#vervose() == v:true
         let cmd = cmd->add("-v")
     endif
 
-    call gotest#write_result_buf(cmd)
+    call gotest#write_result_buf(
+                \ a:target_func != v:null ?
+                \ [pkg, a:target_func] : [pkg]
+                \)
+
     let job = job_start(cmd, {
                 \ 'out_io': 'buffer',
-                \ 'out_buf': gotest#open_test_result_buf(),
+                \ 'callback': {ch,msg -> gotest#write_result_buf(">> ", msg)},
                 \ })
 endfun
 
