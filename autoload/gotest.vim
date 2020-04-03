@@ -66,21 +66,20 @@ fun! gotest#detect_func() abort
     if &ft != 'go'
         throw "support only ft='go'"
     endif
-
     let lnum = line(".")
     let found = ""
     let pat = gotest#_get_func_pattern()
-
     while lnum > 0
         let matched = []
-        call substitute(getline(lnum), pat, '\=add(matched, submatch(0))', '')
+        call substitute(
+                    \ getline(lnum), pat, 
+                    \ '\=add(matched, submatch(0))', '')
         if len(matched) > 0
             let found = matched[0]
             break
         endif
         let lnum = lnum - 1 
     endwhile
-
     if found == ""
         throw "test func not-found"
     endif
@@ -118,22 +117,20 @@ endfun
 fun! gotest#exec_test(target_func = v:null) abort
     let pkg = gotest#detect_package()
     let cmd = ["go", "test", pkg, "-count=1"]
-
     if a:target_func != v:null
         let cmd = cmd->add("-run=".a:target_func)
     endif
     if gotest#vervose() == v:true
         let cmd = cmd->add("-v")
     endif
-
     call gotest#write_result_buf(
                 \ a:target_func != v:null ?
                 \ [pkg, a:target_func] : [pkg]
                 \)
-
     let job = job_start(cmd, {
                 \ 'out_io': 'buffer',
-                \ 'callback': {ch,msg -> gotest#write_result_buf(">> ", msg)},
+                \ 'callback': {_, msg -> 
+                \     gotest#write_result_buf(">> ", msg)},
                 \ })
 endfun
 
