@@ -105,9 +105,8 @@ fun! gotest#clear_result_buf() abort
     call gotest#result_buf_execute('1,$d')
 endfun
 
-fun! gotest#write_result_buf(msg, ...) abort
-    let msg = a:msg->type() == v:t_list ? join(a:msg) : a:msg
-    let msg = a:0 >= 1 ? msg.' '.join(a:000) : msg
+fun! gotest#write_result_buf(msglist = []) abort
+    let msg = a:msglist->join()
     let bufrn = gotest#open_test_result_buf()
     call appendbufline(bufrn, '$', msg)    
     call gotest#result_buf_execute('normal G')
@@ -122,6 +121,7 @@ fun! gotest#exec_test(target_func = v:null) abort
     if gotest#vervose() == v:true
         let cmd = cmd->add("-v")
     endif
+    call gotest#write_result_buf()
     call gotest#write_result_buf(
                 \ a:target_func != v:null ?
                 \ [pkg, a:target_func] : [pkg]
@@ -129,7 +129,7 @@ fun! gotest#exec_test(target_func = v:null) abort
     let job = job_start(cmd, {
                 \ 'out_io': 'buffer',
                 \ 'callback': {_, msg -> 
-                \     gotest#write_result_buf(">> ", msg)},
+                \     gotest#write_result_buf([">>", msg])},
                 \ })
 endfun
 
