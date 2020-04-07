@@ -35,7 +35,6 @@ fun! gotest#vervose() abort
     return v:false
 endfu
 
-
 fun! gotest#_qflist_map(lines = [], qfm = v:null) abort 
     let m = {'title': s:qfconf.title, 'lines': a:lines}
     if a:qfm != v:null
@@ -113,6 +112,14 @@ fun! gotest#write_result_buf(msglist = []) abort
     let bufnr = gotest#open_test_result_buf()
     call appendbufline(bufnr, '$', msg)    
     call gotest#result_buf_execute('normal G')
+endfun                                          
+
+fun! gotest#handle_exit(job, exit_status) abort
+    echom !a:exit_status 
+                \ ? "GO TEST FINISHED WITH !! SUCCESS !!" 
+                \ : "GO TEST FINISHED WITH !! FAILURE !!" 
+
+    " TODO: open buf on split window
 endfun
 
 fun! gotest#exec_test(target_func = v:null) abort
@@ -130,6 +137,7 @@ fun! gotest#exec_test(target_func = v:null) abort
                 \)
     let job = job_start(cmd, {
                 \ 'callback': {_, msg -> gotest#write_result_buf([">>", msg])},
+                \ 'exit_cb': {job, exit_status -> gotest#handle_exit(job, exit_status)},
                 \ })
 endfun
 
