@@ -35,14 +35,6 @@ fun! gotest#vervose() abort
     return v:false
 endfu
 
-fun! gotest#_qflist_map(lines = [], qfm = v:null) abort 
-    let m = {'title': s:qfconf.title, 'lines': a:lines}
-    if a:qfm != v:null
-        let m['qfm'] = a:qfm
-    endif
-    return m
-endfunc 
-
 const s:qfconf = {
             \ 'title': 'GO TEST RESULT', 
             \ }
@@ -85,39 +77,10 @@ fun! gotest#detect_func() abort
     return found
 endfun
 
-fun! gotest#result_buf_execute(cmd) abort
-    let winids = gotest#open_test_result_buf()->win_findbuf()
-    if winids->len() == 0 
-        return
-    endif
-    call map(winids, {_, wid -> win_execute(wid, a:cmd)})
-    return
-endfun
-
-fun! gotest#open_test_result_buf() abort
-    let bufnr = bufadd('Go_Test_Result')
-    call bufload(bufnr)
-    call setbufvar(bufnr, '&buftype', 'nofile')
-    call setbufvar(bufnr, '&filetype', 'gotest')
-    return bufnr
-endfun
-
-fun! gotest#clear_result_buf() abort
-    let bufnr = gotest#open_test_result_buf()
-    call gotest#result_buf_execute('1,$d')
-endfun
-
-fun! gotest#write_result_buf(msglist = []) abort
-    let msg = a:msglist->join()
-    let bufnr = gotest#open_test_result_buf()
-    call appendbufline(bufnr, '$', msg)    
-    call gotest#result_buf_execute('normal G')
-endfun                                          
-
 fun! gotest#handle_exit(job, exit_status) abort
     echom !a:exit_status 
-                \ ? "GO TEST FINISHED WITH SUCCESS" 
-                \ : "GO TEST FINISHED WITH !! FAILURE !!" 
+                \ ? "🟩 GO_TEST: Success " 
+                \ : "🟥 GO_TEST: Failure " 
 
     " TODO: open buf on split window
 endfun
@@ -132,14 +95,17 @@ fun! gotest#exec_test(target_func = v:null) abort
         let cmd = cmd->add("-v")
     endif
 
-    call gotest#clear_result_buf()
-    call gotest#write_result_buf(
+    call gotest#buffer#clear()
+    call gotest#buffer#append_msg(
                 \ a:target_func != v:null ?
                 \ [pkg, a:target_func] : [pkg]
                 \)
     let job = job_start(cmd, {
-                \ 'callback': {_, msg -> gotest#write_result_buf([">>", msg])},
-                \ 'exit_cb': {job, exit_status -> gotest#handle_exit(job, exit_status)},
+                \ 'callback': {_, msg -> 
+                \     gotest#buffer#append_msg([">>", msg])},
+                \ 
+                \ 'exit_cb': {job, exit_status -> 
+                \     gotest#handle_exit(job, exit_status)},
                 \ })
 endfun
 
