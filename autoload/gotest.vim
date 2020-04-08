@@ -116,7 +116,7 @@ endfun
 
 fun! gotest#handle_exit(job, exit_status) abort
     echom !a:exit_status 
-                \ ? "GO TEST FINISHED WITH !! SUCCESS !!" 
+                \ ? "GO TEST FINISHED WITH SUCCESS" 
                 \ : "GO TEST FINISHED WITH !! FAILURE !!" 
 
     " TODO: open buf on split window
@@ -131,6 +131,8 @@ fun! gotest#exec_test(target_func = v:null) abort
     if gotest#vervose() == v:true
         let cmd = cmd->add("-v")
     endif
+
+    call gotest#clear_result_buf()
     call gotest#write_result_buf(
                 \ a:target_func != v:null ?
                 \ [pkg, a:target_func] : [pkg]
