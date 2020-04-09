@@ -20,8 +20,8 @@ fun! gotest#buffer#is_open(bufnr)
                 \ : v:true
 endfun
 
-fun! gotest#buffer#execute(cmd) abort
-    let winids = gotest#buffer#get_bufnr()->win_findbuf()
+fun! gotest#buffer#execute(bufnr, cmd) abort
+    let winids = win_findbuf(a:bufnr)
     if winids->len() == 0 
         return
     endif
@@ -29,15 +29,13 @@ fun! gotest#buffer#execute(cmd) abort
     return
 endfun
 
-fun! gotest#buffer#clear() abort
-    let bufnr = gotest#buffer#get_bufnr()
-    call gotest#buffer#execute('1,$d')
+fun! gotest#buffer#clear(bufnr) abort
+    call gotest#buffer#execute(a:bufnr, '1,$d')
 endfun
 
-fun! gotest#buffer#append_msg(msglist = []) abort
-    let msg = a:msglist->join()
-    let bufnr = gotest#buffer#get_bufnr()
-    call appendbufline(bufnr, '$', msg)    
+fun! gotest#buffer#append_msg(bufnr, msglist = []) abort
+    let msg = join(a:msglist)
+    call appendbufline(a:bufnr, '$', msg)    
     call gotest#result_buf_execute('normal G')
 endfun                                          
 

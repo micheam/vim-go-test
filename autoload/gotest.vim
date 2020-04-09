@@ -97,14 +97,14 @@ fun! gotest#exec_test(target_func = v:null) abort
         let cmd = cmd->add("-v")
     endif
 
-    call gotest#buffer#clear()
-    call gotest#buffer#append_msg(
-                \ a:target_func != v:null ?
-                \ [pkg, a:target_func] : [pkg]
-                \)
+    const bufnr = gotest#buffer#get_bufnr()
+    const headerMsg = a:target_func != v:null ?  [pkg, a:target_func] : [pkg]
+
+    call gotest#buffer#clear(bufnr)
+    call gotest#buffer#append_msg(bufnr, headerMsg)
     let job = job_start(cmd, {
                 \ 'callback': {_, msg -> 
-                \     gotest#buffer#append_msg([">>", msg])},
+                \     gotest#buffer#append_msg(bufnr, [">>", msg])},
                 \ 
                 \ 'exit_cb': {job, exit_status -> 
                 \     gotest#handle_exit(job, exit_status)},
