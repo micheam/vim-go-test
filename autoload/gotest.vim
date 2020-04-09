@@ -78,11 +78,13 @@ fun! gotest#detect_func() abort
 endfun
 
 fun! gotest#handle_exit(job, exit_status) abort
-    echom !a:exit_status 
-                \ ? "🟩 GO_TEST: Success " 
-                \ : "🟥 GO_TEST: Failure " 
-
-    " TODO: open buf on split window
+    if !a:exit_status
+        echo "GO_TEST: Success"
+    else
+        echohl WarningMsg |
+                    \ echom "GO_TEST: Failure" |
+                    \ echohl None
+    endif
 endfun
 
 fun! gotest#exec_test(target_func = v:null) abort
