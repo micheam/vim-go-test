@@ -3,6 +3,7 @@
 " Author: micheam <https://github.com/micheam>
 " License: MIT
 
+" TODO: change to dict
 const s:go_test_success = 0
 const s:go_test_fail = 1
 const s:go_test_build_fail = 2
@@ -33,6 +34,13 @@ fun! gotest#vervose() abort
         return g:go_test_vervose
     endif
     return v:false
+endfu
+
+fun! gotest#_open_result_on_failure() abort 
+    if exists('g:go_test_auto_result_open_on_failure')
+        return g:go_test_auto_result_open_on_failure
+    endif
+    return v:true
 endfu
 
 const s:qfconf = {
@@ -84,6 +92,9 @@ fun! gotest#handle_exit(job, exit_status) abort
         echohl WarningMsg |
                     \ echom "GO_TEST: Failure" |
                     \ echohl None
+        if gotest#_open_result_on_failure()
+            call gotest#open_result_buffer()
+        endif
     endif
 endfun
 
@@ -114,6 +125,31 @@ endfun
 fun! gotest#exec_test_func() abort
     let fun_name = gotest#detect_func()
     call gotest#exec_test(fun_name)
+endfun
+
+fun! gotest#open_result_buffer() abort
+    const bufnr = gotest#buffer#get_bufnr()
+    if gotest#buffer#is_open(bufnr) | return | endif
+    const curr_winnr = winnr()
+    execute('vertical rightbelow split | buffer ' . bufnr)
+    execute(curr_winnr . 'wincmd w')
+endfun
+
+fun! gotest#close_result_buffer() abort
+    const bufnr = gotest#buffer#get_bufnr()
+    const win_list = win_findbuf(bufnr)
+    for winid in win_list
+        call win_execute(winid, 'quit!', 'silent')
+    endfor
+endfun
+
+fun! gotest#toggle_result_buffer() abort
+    const bufnr = gotest#buffer#get_bufnr()
+    if gotest#buffer#is_open(bufnr) 
+        call gotest#close_result_buffer()
+    else
+        call gotest#open_result_buffer()
+    endif
 endfun
 
 " vim:set et:
