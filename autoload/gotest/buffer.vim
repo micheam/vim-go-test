@@ -36,7 +36,7 @@ endfun
 fun! gotest#buffer#append_msg(bufnr, msglist = []) abort
     let msg = join(a:msglist)
     call appendbufline(a:bufnr, '$', msg)    
-    call gotest#result_buf_execute('normal G')
+    call gotest#buffer#execute(a:bufnr, 'normal G')
 endfun                                          
 
 " vim:set et:
