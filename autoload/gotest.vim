@@ -53,7 +53,7 @@ fun! gotest#detect_package() abort
         throw "support only ft='go'"
     endif
     let dir = expand('%:p:h')
-    let cmd = "go list " . dir
+    let cmd = "cd " . dir . "&& go list " . dir
     let out = systemlist(cmd)     
     if v:shell_error != 0
         throw "Can't detect package: ".join(out, ":")
@@ -114,6 +114,7 @@ fun! gotest#exec_test(target_func = v:null) abort
     call gotest#buffer#clear(bufnr)
     call gotest#buffer#append_msg(bufnr, headerMsg)
     let job = job_start(cmd, {
+                \ 'cwd': expand('%:p:h'),
                 \ 'callback': {_, msg -> 
                 \     gotest#buffer#append_msg(bufnr, [">>", msg])},
                 \ 
