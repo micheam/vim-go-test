@@ -130,9 +130,14 @@ endfun
 
 fun! gotest#open_result_buffer() abort
     const bufnr = gotest#buffer#get_bufnr()
-    if gotest#buffer#is_open(bufnr) | return | endif
     const curr_winnr = winnr()
-    execute('vertical rightbelow split | buffer ' . bufnr)
+    if !gotest#buffer#is_open(bufnr) 
+        " create new window and load test result
+        execute('vertical rightbelow split | buffer ' . bufnr)
+    else 
+        execute(bufnr . 'wincmd w')
+    endif
+    execute('normal gg')
     execute(curr_winnr . 'wincmd w')
 endfun
 
