@@ -134,11 +134,16 @@ fun! gotest#open_result_buffer() abort
     if !gotest#buffer#is_open(bufnr) 
         " create new window and load test result
         execute('vertical rightbelow split | buffer ' . bufnr)
+        execute('normal gg')
+        execute(curr_winnr . 'wincmd w')
     else 
-        execute(bufnr . 'wincmd w')
+        const win_list = win_findbuf(bufnr)
+        for winid in win_list 
+            execute(win_id2win(winid) . 'wincmd w')
+            execute('normal gg')
+        endfor
+        execute(curr_winnr . 'wincmd w')
     endif
-    execute('normal gg')
-    execute(curr_winnr . 'wincmd w')
 endfun
 
 fun! gotest#close_result_buffer() abort
