@@ -1,6 +1,7 @@
 package sample
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -44,4 +45,17 @@ func TestPlus2(t *testing.T) {
 	if got != 2 {
 		t.Error("Oh...")
 	}
+}
+
+func Test_Plus2(t *testing.T) {
+	got := Plus(1, 1)
+	if got != 2 {
+		t.Error("Oh...")
+	}
+}
+
+func ExamplePlus_ordinal() {
+	var a, b = 1, 2
+	fmt.Println(Plus(a, b))
+	// Output:  3
 }

@@ -12,7 +12,7 @@ func! gotest#_get_func_pattern()
     if exists('g:go_test_func_pattern')
         return g:go_test_func_pattern
     endif
-    return "^func\\s\\zsTest\\w\\+\\ze"
+    return "^func\\s\\zs\\(Test\\|Example\\)\\w\\+\\ze"
 endfunc
 
 func! gotest#_get_qfm()
