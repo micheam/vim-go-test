@@ -3,7 +3,6 @@
 " Author: 
 " License: 
 
-echom "Autoloading..."
 const s:buffer_name = "GO_TEST_RESULT"
 
 fun! gotest#buffer#get_bufnr() abort

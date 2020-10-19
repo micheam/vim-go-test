@@ -98,18 +98,51 @@ fun! gotest#handle_exit(job, exit_status) abort
     endif
 endfun
 
-fun! gotest#exec_test(target_func = v:null) abort
+fun! gotest#exec_test(target_func = v:none) abort
     let pkg = gotest#detect_package()
     let cmd = ["go", "test", pkg, "-count=1"]
-    if a:target_func != v:null
+    if a:target_func != v:none
         let cmd = cmd->add("-run=".a:target_func)
     endif
     if gotest#vervose() == v:true
         let cmd = cmd->add("-v")
     endif
 
+    call gotest#execution_history#add(pkg, a:target_func)
+
     const bufnr = gotest#buffer#get_bufnr()
-    const headerMsg = a:target_func != v:null ?  [pkg, a:target_func] : [pkg]
+    const headerMsg = a:target_func != v:none ?  [pkg, a:target_func] : [pkg]
+
+    call gotest#buffer#clear(bufnr)
+    call gotest#buffer#append_msg(bufnr, headerMsg)
+    let job = job_start(cmd, {
+                \ 'cwd': expand('%:p:h'),
+                \ 'callback': {_, msg -> 
+                \     gotest#buffer#append_msg(bufnr, [">>", msg])},
+                \ 
+                \ 'exit_cb': {job, exit_status -> 
+                \     gotest#handle_exit(job, exit_status)},
+                \ })
+endfun
+
+" exec_last_test
+"
+" 最後に実行したテストを再実行し、結果をバッファに書き出す
+" テスト実行履歴に記録が存在していない場合は、
+" ワーニングメッセージを表示し処理を終了する。
+fun! gotest#exec_last_test() abort
+    let pkg = gotest#execution_history#lastPackage()
+    let target_func = gotest#execution_history#lastFuntion()
+    let cmd = ["go", "test", pkg, "-count=1"]
+    if target_func != v:none
+        let cmd = cmd->add("-run=".target_func)
+    endif
+    if gotest#vervose() == v:true
+        let cmd = cmd->add("-v")
+    endif
+
+    const bufnr = gotest#buffer#get_bufnr()
+    const headerMsg = target_func != v:none ?  [pkg, target_func] : [pkg]
 
     call gotest#buffer#clear(bufnr)
     call gotest#buffer#append_msg(bufnr, headerMsg)
