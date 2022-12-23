@@ -36,6 +36,13 @@ fun! gotest#vervose() abort
     return v:false
 endfu
 
+fun! gotest#coverage() abort 
+    if exists('g:go_test_coverage')
+        return g:go_test_coverage
+    endif
+    return v:false
+endfu
+
 fun! gotest#_open_result_on_failure() abort 
     if exists('g:go_test_auto_result_open_on_failure')
         return g:go_test_auto_result_open_on_failure
@@ -101,6 +108,9 @@ endfun
 fun! gotest#exec_test(target_func = v:none) abort
     let pkg = gotest#detect_package()
     let cmd = ["go", "test", pkg, "-count=1"]
+    if gotest#coverage() == v:true
+        let cmd = cmd->add("-cover")
+    endif
     if a:target_func != v:none
         let cmd = cmd->add("-run=".a:target_func)
     endif
@@ -134,6 +144,9 @@ fun! gotest#exec_last_test() abort
     let pkg = gotest#execution_history#lastPackage()
     let target_func = gotest#execution_history#lastFuntion()
     let cmd = ["go", "test", pkg, "-count=1"]
+    if gotest#coverage() == v:true
+        let cmd = cmd->add("-cover")
+    endif
     if target_func != v:none
         let cmd = cmd->add("-run=".target_func)
     endif
